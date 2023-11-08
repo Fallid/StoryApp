@@ -3,14 +3,15 @@ package com.naufal.storyapp.view.signup
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import com.naufal.storyapp.databinding.ActivitySignupBinding
 
 class SignupActivity : AppCompatActivity() {
@@ -57,11 +58,12 @@ class SignupActivity : AppCompatActivity() {
     }
 
     private fun signUpAction() {
-        val name = binding.edRegisterName.text.toString()
-        val email = binding.edRegisterEmail.text.toString()
-        val password = binding.edRegisterPassword.text.toString()
         binding.signupButton.setOnClickListener {
-            if (name.isNotEmpty() && email.isNotEmpty() && (password.isNotEmpty() && password.length >= 8)){
+            val name = binding.edRegisterName.text.toString()
+            val email = binding.edRegisterEmail.text.toString()
+            val password = binding.edRegisterPassword.text.toString()
+            val validEmail = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+            if (name.isNotEmpty() and (email.isNotEmpty() and validEmail) and (password.isNotEmpty() && password.length >= 8)){
                 AlertDialog.Builder(this).apply {
                     setTitle("Register berhasil!")
                     setMessage("Akun dengan $email berhasil dibuat. Silahkan melakukan login terlebih dahulu ya.")

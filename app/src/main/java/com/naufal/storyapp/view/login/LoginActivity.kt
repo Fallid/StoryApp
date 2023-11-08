@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -66,10 +67,11 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loginAction() {
-        val password = binding.edLoginPassword.text.toString()
-        val email = binding.edLoginEmail.text.toString()
         binding.loginButton.setOnClickListener {
-            if ((password.isNotEmpty() && password.length >= 8) && email.isNotEmpty()){
+            val password = binding.edLoginPassword.text.toString()
+            val email = binding.edLoginEmail.text.toString()
+            val validEmail = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+            if ((password.isNotEmpty() && password.length >= 8) && (email.isNotEmpty() and validEmail)){
                 viewModel.saveSession(UserModelAuth(email, "sample_token"))
                 AlertDialog.Builder(this).apply {
                     setTitle("Selamat Datang")
