@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">StoryApp</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="title_welcome_page">Selamat datang di StoryApp</string>
+    <string name="message_welcome_page">Mau membuat cerita fiksi, non-fiksi, bahkan cerita hidup mu? StoryApp akan mewujudkan keinginan mu.</string>
+    <string name="title_login_page">Welcome \nHome</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="message_main_page">StoryApp</string>
+    <string name="logout">Logout</string>
+    <string name="title_signup_page">Halo 👋\nLengkapi data diri terlebih dahulu</string>
+    <string name="name">Nama</string>
+    <string name="sign_up">Sign Up</string>
+</resources>
