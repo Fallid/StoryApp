@@ -6,13 +6,17 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivitySignupBinding
+import kotlinx.coroutines.launch
 
 class SignupActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
@@ -20,10 +24,19 @@ class SignupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        isLoading(false)
         layoutView()
         setAnimation()
         filterPassword()
         signUpAction()
+    }
+
+    private fun isLoading(loading: Boolean){
+        if (loading){
+            binding.signupProgressbar.visibility = View.VISIBLE
+        }else{
+            binding.signupProgressbar.visibility = View.INVISIBLE
+        }
     }
 
     private fun filterPassword(){
@@ -64,14 +77,36 @@ class SignupActivity : AppCompatActivity() {
             val password = binding.edRegisterPassword.text.toString()
             val validEmail = Patterns.EMAIL_ADDRESS.matcher(email).matches()
             if (name.isNotEmpty() and (email.isNotEmpty() and validEmail) and (password.isNotEmpty() && password.length >= 8)){
-                AlertDialog.Builder(this).apply {
-                    setTitle("Register berhasil!")
-                    setMessage("Akun dengan $email berhasil dibuat. Silahkan melakukan login terlebih dahulu ya.")
-                    setPositiveButton("Lanjut") { _, _ ->
-                        finish()
+                isLoading(true)
+                lifecycleScope.launch {
+                    try {
+                        val registerResponse = ApiConfig.getApiService().register(name, email, password)
+                        isLoading(false)
+                        if (registerResponse.error == false){
+                            AlertDialog.Builder(this@SignupActivity).apply {
+                                setTitle("Register berhasil!")
+                                setMessage("Akun dengan $email berhasil dibuat. Silahkan melakukan login terlebih dahulu ya.")
+                                setPositiveButton("Lanjut") { _, _ ->
+                                    finish()
+                                }
+                                create()
+                                show()
+                            }
+                        }else{
+                            AlertDialog.Builder(this@SignupActivity).apply {
+                                setTitle("Register gagal!")
+                                setMessage("Akun dengan $email gagal dibuat. Silahkan coba beberapa saat lagi.  \n${registerResponse.message}")
+                                setPositiveButton("Tutup") { _, _ ->
+                                    finish()
+                                }
+                                create()
+                                show()
+                            }
+                        }
+                    }catch (err: Exception){
+                        isLoading(false)
+                        Log.e("Response error", err.toString())
                     }
-                    create()
-                    show()
                 }
             }else{
                 AlertDialog.Builder(this).apply {
