@@ -4,10 +4,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.util.Patterns
 import android.view.View
@@ -15,6 +12,7 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import com.naufal.storyapp.data.database.UserModelAuth
 import com.naufal.storyapp.data.response.authentication.LoginResponse
 import com.naufal.storyapp.data.retrofit.ApiConfig
@@ -38,7 +36,6 @@ class LoginActivity : AppCompatActivity() {
         layoutView()
         setAnimation()
         loginAction()
-        filterPassword()
 
     }
 
@@ -48,24 +45,6 @@ class LoginActivity : AppCompatActivity() {
         }else{
             binding.loginProgressBar.visibility = View.INVISIBLE
         }
-    }
-
-    private fun filterPassword(){
-        binding.edLoginPassword.addTextChangedListener ( object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(password: CharSequence?, after: Int, before: Int, count: Int) {
-                if (password.toString().length < 8){
-                    binding.edLoginPassword.error = "Password less than 8 chars"
-                }else{
-                    binding.edLoginPassword.error = null
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {}
-        } )
     }
 
     private fun layoutView() {

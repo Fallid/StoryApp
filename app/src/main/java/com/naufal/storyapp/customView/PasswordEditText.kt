@@ -2,37 +2,31 @@ package com.naufal.storyapp.customView
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.AttributeSet
-import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatEditText
-import com.naufal.storyapp.R
 
 @SuppressLint("ClickableViewAccessibility")
 class PasswordEditText(context: Context, attrs: AttributeSet?) : AppCompatEditText(context, attrs) {
-    private var isPasswordVisible = false
+    private var errorMessage = "Password less than 8 chars!"
 
     init {
-        setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.baseline_lock_24, 0)
-        setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                val drawableEnd = compoundDrawablesRelative[2]
-                if (drawableEnd != null && event.rawX >= (right - drawableEnd.bounds.width())) {
-                    togglePasswordVisibility()
-                    return@setOnTouchListener true
+        addTextChangedListener ( object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(password: CharSequence?, after: Int, before: Int, count: Int) {
+                if (password.toString().length < 8){
+                    setError(errorMessage, null)
+                }else{
+                    error = null
                 }
             }
-            false
-        }
+
+            override fun afterTextChanged(p0: Editable?) {}
+        } )
     }
 
-    private fun togglePasswordVisibility() {
-        isPasswordVisible = !isPasswordVisible
-        transformationMethod = if (isPasswordVisible) {
-            HideReturnsTransformationMethod.getInstance()
-        } else {
-            PasswordTransformationMethod.getInstance()
-        }
-    }
 }
