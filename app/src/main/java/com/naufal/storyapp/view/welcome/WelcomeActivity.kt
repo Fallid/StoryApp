@@ -55,6 +55,17 @@ class WelcomeActivity : AppCompatActivity() {
             repeatMode = ObjectAnimator.REVERSE
         }.start()
 
+        ObjectAnimator.ofFloat(binding.btnLogin, View.TRANSLATION_X, 30f, -30f).apply {
+            duration = 3000
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+        }.start()
+        ObjectAnimator.ofFloat(binding.btnSignup, View.TRANSLATION_X, -30f, 30f).apply {
+            duration = 3000
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+        }.start()
+
         val loginAnimator = ObjectAnimator.ofFloat(binding.btnLogin, View.ALPHA, 1f).setDuration(100)
         val signupAnimator = ObjectAnimator.ofFloat(binding.btnSignup, View.ALPHA, 1f).setDuration(100)
         val titleAnimator = ObjectAnimator.ofFloat(binding.tvTitle, View.ALPHA, 1f).setDuration(100)
