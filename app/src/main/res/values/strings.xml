@@ -12,4 +12,6 @@
     <string name="title_signup_page">Halo 👋\nLengkapi data diri terlebih dahulu</string>
     <string name="name">Nama</string>
     <string name="sign_up">Sign Up</string>
+    <string name="username">Username</string>
+    <string name="story_description">Story description</string>
 </resources>
