@@ -4,9 +4,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.viewModelScope
@@ -16,6 +16,7 @@ import com.naufal.storyapp.data.repository.StoryRepository
 import com.naufal.storyapp.data.response.story.ListStoryItem
 import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityMainBinding
+import com.naufal.storyapp.view.add.AddActivity
 import com.naufal.storyapp.view.modelFactory.ViewModelFactory
 import com.naufal.storyapp.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
@@ -25,7 +26,6 @@ class MainActivity : AppCompatActivity(){
     private lateinit var mainAdapter: MainAdapter
     private val apiConfig = ApiConfig.getApiService()
     private val storyRepository =  StoryRepository(apiConfig)
-//    private var token: String? = null
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
@@ -48,26 +48,36 @@ class MainActivity : AppCompatActivity(){
         viewModel.getSession().observe(this){
             story -> if (story.isLogin){
                 val token = story.token
-            Toast.makeText(this, token, Toast.LENGTH_LONG).show()
-            print(token)
                 viewModel.viewModelScope.launch {
                     try {
+                        isLoading(true)
                         storyRepository.getStories(token= token, onSuccess = {list -> updateStoryList(list)}, onError = {})
+                        binding.fbAdd.setOnClickListener {
+                            val intent = Intent(this@MainActivity, AddActivity::class.java)
+                            intent.putExtra("token", token)
+                            startActivity(intent)
+                        }
                     }catch (err : Exception){
                         Log.e("MainActivity List Story", err.message.toString())
                     }
                 }
             }
         }
+    }
 
+    private fun isLoading (loading:Boolean){
+        if (loading){
+            binding.pbMain.visibility = View.VISIBLE
+        }else{
+            binding.pbMain.visibility = View.INVISIBLE
+        }
     }
     private fun updateStoryList(storyList: List<ListStoryItem>) {
+        isLoading(false)
         mainAdapter.submitList(storyList)
     }
 
     private fun setupView() {
-
-//        mainAdapter.setStoryClickListener(this)
         @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.hide(WindowInsets.Type.statusBars())
@@ -92,8 +102,4 @@ class MainActivity : AppCompatActivity(){
         }
         }
     }
-
-//    override fun onStoryClick(story: ListStoryItem) {
-////
-//    }
 }

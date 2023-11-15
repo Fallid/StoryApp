@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -65,8 +64,7 @@ class LoginActivity : AppCompatActivity() {
             isLoading(true)
             val password = binding.edLoginPassword.text.toString()
             val email = binding.edLoginEmail.text.toString()
-            val validEmail = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-            if ((password.isNotEmpty() && password.length >= 8) && (email.isNotEmpty() and validEmail)){
+            if ((password.isNotEmpty()) && (email.isNotEmpty())){
                 val client = ApiConfig.getApiService().login(email, password)
                 client.enqueue(object : Callback<LoginResponse>{
                     override fun onResponse(
@@ -97,13 +95,19 @@ class LoginActivity : AppCompatActivity() {
                             }else{
                                 AlertDialog.Builder(this@LoginActivity).apply {
                                     setTitle("Login gagal!")
-                                    setMessage("Akun dengan $email gagal untuk login. Silahkan coba beberapa saat lagi.  \n${loginResponseBody.message}")
-                                    setPositiveButton("Tutup") { _, _ ->
-                                        finish()
-                                    }
+                                    setMessage("Akun dengan $email gagal untuk login. \nPastikan email atau password sudah benar")
+                                    setPositiveButton("Tutup") { _, _ ->}
                                     create()
                                     show()
                                 }
+                            }
+                        }else{
+                            AlertDialog.Builder(this@LoginActivity).apply {
+                                setTitle("Login gagal!")
+                                setMessage("Akun dengan $email gagal untuk login. \nPastikan email atau password sudah benar")
+                                setPositiveButton("Tutup") { _, _ -> }
+                                create()
+                                show()
                             }
                         }
                     }
@@ -130,6 +134,7 @@ class LoginActivity : AppCompatActivity() {
                     create()
                     show()
                 }
+                isLoading(false)
             }
         }
     }
@@ -161,7 +166,7 @@ class LoginActivity : AppCompatActivity() {
                 passwordEditTextLayout,
                 login
             )
-            startDelay = 100
+            startDelay = 300
         }.start()
     }
 }

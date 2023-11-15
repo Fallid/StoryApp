@@ -36,15 +36,10 @@ interface ApiService {
         @Header("Authorization") token: String,
     ): AllStoryResponse
 
-//    @GET("stories/{id}")
-//    suspend fun getStoryDetail(
-//        @Header("Authorization") token: String,
-//        @Path("id") storyId: String
-//    ): DetailStoryResponse
 
     @Multipart
     @POST("stories")
-    fun addStory(
+    fun newStory(
         @Header("Authorization") token: String,
         @Part("description") description: RequestBody,
         @Part photo: MultipartBody.Part,
