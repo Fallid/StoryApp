@@ -27,7 +27,6 @@ class SignupActivity : AppCompatActivity() {
         isLoading(false)
         layoutView()
         setAnimation()
-        filterPassword()
         signUpAction()
     }
 
@@ -37,24 +36,6 @@ class SignupActivity : AppCompatActivity() {
         }else{
             binding.signupProgressbar.visibility = View.INVISIBLE
         }
-    }
-
-    private fun filterPassword(){
-        binding.edRegisterPassword.addTextChangedListener ( object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(password: CharSequence?, after: Int, before: Int, count: Int) {
-                if (password.toString().length < 8){
-                    binding.edRegisterPassword.error = "Password less than 8 chars"
-                }else{
-                    binding.edRegisterPassword.error = null
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {}
-        } )
     }
 
     private fun layoutView() {
@@ -75,8 +56,7 @@ class SignupActivity : AppCompatActivity() {
             val name = binding.edRegisterName.text.toString()
             val email = binding.edRegisterEmail.text.toString()
             val password = binding.edRegisterPassword.text.toString()
-            val validEmail = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-            if (name.isNotEmpty() and (email.isNotEmpty() and validEmail) and (password.isNotEmpty() && password.length >= 8)){
+            if (name.isNotEmpty() and (email.isNotEmpty()) and password.isNotEmpty()){
                 isLoading(true)
                 lifecycleScope.launch {
                     try {

@@ -3,8 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <group android:menuCategory="container">
         <item
+            android:id="@+id/languageButton"
+            android:title="Multi-Language"
+            android:icon="@drawable/baseline_g_translate_24"
+            app:showAsAction="ifRoom"
+            android:iconTint="@color/background"/>
+        <item
             android:id="@+id/logoutButton"
             android:title="@string/logout"
-            app:showAsAction="never"/>
+            android:icon="@drawable/baseline_logout_24"
+            android:iconTint="@color/background"
+            app:showAsAction="ifRoom"/>
     </group>
 </menu>

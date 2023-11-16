@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login">Anmeldung</string>
+    <string name="signup">Registrieren</string>
+    <string name="title_welcome_page">Willkommen bei StoryApp</string>
+    <string name="message_welcome_page">Möchten Sie Belletristik, Sachbücher oder sogar Ihre Lebensgeschichte schreiben? StoryApp macht Ihre Wünsche wahr.</string>
+    <string name="title_login_page">Glücklich \nKomm zurück</string>
+    <string name="password">Passwort</string>
+    <string name="logout">Ausloggen</string>
+    <string name="title_signup_page">Hallo 👋\nVervollständigen Sie zunächst Ihre persönlichen Daten</string>
+    <string name="username">Nutzername</string>
+    <string name="story_description">Beschreibung der Geschichte</string>
+    <string name="upload">Hochladen</string>
+    <string name="empty_image_warning">Scheitern</string>
+    <string name="story_collection">Geschichtensammlung</string>
+    <string name="selamat_datang">Willkommen</string>
+    <string name="login_berhasil">Sie haben sich erfolgreich angemeldet.</string>
+    <string name="lanjut">Weitermachen</string>
+    <string name="login_gagal">Fehler bei der Anmeldung</string>
+    <string name="tutup">Schließen</string>
+    <string name="msg_pass_email_salah">Konto mit %1$s konnte sich nicht anmelden. Stellen Sie sicher, dass die E-Mail-Adresse oder das Passwort korrekt sind</string>
+    <string name="msg_onFailure">Konto mit %1$s konnte sich nicht anmelden. Bitte versuchen Sie es in ein paar Augenblicken noch einmal. %2$s</string>
+    <string name="msg_pass_email_kosong">Geben Sie unbedingt zuerst Ihre E-Mail-Adresse und Ihr Passwort ein!</string>
+</resources>

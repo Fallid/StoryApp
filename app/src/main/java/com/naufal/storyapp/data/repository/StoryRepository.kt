@@ -17,13 +17,6 @@ class StoryRepository (private val apiService: ApiService) {
             onError(e.message ?: "Unknown error")
         }
     }
-//    suspend fun getStoryDetail(token: String, storyId: String): Story {
-//        val response = apiService.getStoryDetail("Bearer $token", storyId)
-//        if (response.error == true) {
-//            throw Exception(response.message)
-//        }
-//        return response.story!!
-//    }
     companion object {
         @Volatile
         private var instance: StoryRepository? = null

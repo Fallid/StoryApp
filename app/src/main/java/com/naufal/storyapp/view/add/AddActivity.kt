@@ -1,13 +1,18 @@
 package com.naufal.storyapp.view.add
 
 import android.Manifest
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -53,19 +58,21 @@ class AddActivity : AppCompatActivity() {
         binding = ActivityAddBinding.inflate(layoutInflater)
         setContentView(binding.root)
         imageView = binding.ivAddImage
+        layoutView()
+        setAnimation()
         if (!requiredPermission()){
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSION, 200)
         }
         binding.btnGallery.setOnClickListener { startGallery() }
-        binding.btnCamera.setOnClickListener{startCameraX()}
+        binding.btnCamera.setOnClickListener{startCamera()}
         binding.btnUpload.setOnClickListener {
             if (token != null) {
-                uploadImage("Bearer $token")
+                uploadAction("Bearer $token")
             }
         }
     }
 
-    private fun uploadImage(token:String) {
+    private fun uploadAction(token:String) {
         currentImageUri?.let { uri ->
             val imageFile = uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
@@ -124,7 +131,7 @@ class AddActivity : AppCompatActivity() {
             Log.d("Photo Picker", "No media selected")
         }
     }
-    private fun startCameraX(){
+    private fun startCamera(){
         val intent = Intent(this, Camera::class.java)
         launcherIntentCameraX.launch(intent)
     }
@@ -152,5 +159,35 @@ class AddActivity : AppCompatActivity() {
         }else{
             binding.pbAddStory.visibility = View.INVISIBLE
         }
+    }
+
+    private fun layoutView() {
+        @Suppress("DEPRECATION")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.hide(WindowInsets.Type.statusBars())
+        } else {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+        }
+        supportActionBar?.show()
+    }
+    private fun setAnimation() {
+        val buttonCamera = ObjectAnimator.ofFloat(binding.btnCamera, View.ALPHA, 1f).setDuration(1000)
+        val buttonGallery = ObjectAnimator.ofFloat(binding.btnGallery, View.ALPHA, 1f).setDuration(1000)
+        val editTextDesc = ObjectAnimator.ofFloat(binding.edAddDescription, View.ALPHA, 1f).setDuration(1000)
+        val buttonUpload = ObjectAnimator.ofFloat(binding.btnUpload, View.ALPHA, 1f).setDuration(1000)
+
+
+        AnimatorSet().apply {
+            playSequentially(
+                buttonCamera,
+                buttonGallery,
+                editTextDesc,
+                buttonUpload
+            )
+            startDelay = 1000
+        }.start()
     }
 }

@@ -12,6 +12,7 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.naufal.storyapp.R
 import com.naufal.storyapp.data.database.UserModelAuth
 import com.naufal.storyapp.data.response.authentication.LoginResponse
 import com.naufal.storyapp.data.retrofit.ApiConfig
@@ -81,9 +82,9 @@ class LoginActivity : AppCompatActivity() {
                                     loginResponseBody.loginResult?.token.toString(),
                                     ))
                                     AlertDialog.Builder(this@LoginActivity).apply {
-                                    setTitle("Selamat Datang")
-                                    setMessage("Anda berhasil login.")
-                                    setPositiveButton("Lanjut") { _, _ ->
+                                    setTitle(getString(R.string.selamat_datang))
+                                    setMessage(getString(R.string.login_berhasil))
+                                    setPositiveButton(getString(R.string.lanjut)) { _, _ ->
                                         val intent = Intent(context, MainActivity::class.java)
                                         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                                         startActivity(intent)
@@ -94,18 +95,18 @@ class LoginActivity : AppCompatActivity() {
                                 }
                             }else{
                                 AlertDialog.Builder(this@LoginActivity).apply {
-                                    setTitle("Login gagal!")
-                                    setMessage("Akun dengan $email gagal untuk login. \nPastikan email atau password sudah benar")
-                                    setPositiveButton("Tutup") { _, _ ->}
+                                    setTitle(getString(R.string.login_gagal))
+                                    setMessage(getString(R.string.msg_pass_email_salah, email))
+                                    setPositiveButton(getString(R.string.tutup)) { _, _ ->}
                                     create()
                                     show()
                                 }
                             }
                         }else{
                             AlertDialog.Builder(this@LoginActivity).apply {
-                                setTitle("Login gagal!")
-                                setMessage("Akun dengan $email gagal untuk login. \nPastikan email atau password sudah benar")
-                                setPositiveButton("Tutup") { _, _ -> }
+                                setTitle(getString(R.string.login_gagal))
+                                setMessage(getString(R.string.msg_pass_email_salah, email))
+                                setPositiveButton(getString(R.string.tutup)) { _, _ -> }
                                 create()
                                 show()
                             }
@@ -114,9 +115,9 @@ class LoginActivity : AppCompatActivity() {
 
                     override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                         AlertDialog.Builder(this@LoginActivity).apply {
-                            setTitle("Login gagal!")
-                            setMessage("Akun dengan $email gagal untuk login. Silahkan coba beberapa saat lagi.  \n${t.message}")
-                            setPositiveButton("Tutup") { _, _ ->
+                            setTitle(getString(R.string.login_gagal))
+                            setMessage(getString(R.string.msg_onFailure, email, t.message))
+                            setPositiveButton(getString(R.string.tutup)) { _, _ ->
                                 finish()
                             }
                             create()
@@ -128,9 +129,9 @@ class LoginActivity : AppCompatActivity() {
                 })
             }else{
                 AlertDialog.Builder(this).apply {
-                    setTitle("Login Gagal")
-                    setMessage("Pastikan untuk mengisi email dan password terlebih dahulu!")
-                    setNegativeButton("Tutup"){ _, _ ->}
+                    setTitle(getString(R.string.login_gagal))
+                    setMessage(getString(R.string.msg_pass_email_kosong))
+                    setNegativeButton(getString(R.string.tutup)){ _, _ ->}
                     create()
                     show()
                 }
