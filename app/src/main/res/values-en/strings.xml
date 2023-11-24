@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login">Log in</string>
+    <string name="signup">Register</string>
+    <string name="title_welcome_page">Welcome to StoryApp</string>
+    <string name="message_welcome_page">Do you want to write fiction, non-fiction or even your life story? StoryApp will make your wishes come true.</string>
+    <string name="title_login_page">Welcome \nBack</string>
+    <string name="password">Password</string>
+    <string name="logout">Log out</string>
+    <string name="title_signup_page">Hello 👋\nComplete your personal data first</string>
+    <string name="username">Username</string>
+    <string name="story_description">Story Description</string>
+    <string name="upload">Upload</string>
+    <string name="empty_image_warning">Failed</string>
+    <string name="story_collection">Story Collection</string>
+    <string name="selamat_datang">Welcome</string>
+    <string name="login_berhasil">You have successfully logged in.</string>
+    <string name="lanjut">Continue</string>
+    <string name="login_gagal">Login Failed</string>
+    <string name="tutup">Close</string>
+    <string name="msg_pass_email_salah">Account with %1$s failed to login. Make sure the email or password is correct</string>
+    <string name="msg_onFailure">Account with %1$s failed to login. Please try again in a few moments. %2$s</string>
+    <string name="msg_pass_email_kosong">Make sure to fill in your email and password first!</string>
+</resources>

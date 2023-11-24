@@ -1,21 +1,34 @@
 package com.naufal.storyapp.view.main
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.viewModelScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.naufal.storyapp.R
+import com.naufal.storyapp.data.repository.StoryRepository
+import com.naufal.storyapp.data.response.story.ListStoryItem
+import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityMainBinding
+import com.naufal.storyapp.view.add.AddActivity
 import com.naufal.storyapp.view.modelFactory.ViewModelFactory
 import com.naufal.storyapp.view.welcome.WelcomeActivity
+import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
+    private lateinit var mainAdapter: MainAdapter
+    private val apiConfig = ApiConfig.getApiService()
+    private val storyRepository =  StoryRepository(apiConfig)
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
@@ -24,17 +37,56 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         viewModel.getSession().observe(this) { user ->
             if (!user.isLogin) {
                 startActivity(Intent(this, WelcomeActivity::class.java))
                 finish()
             }
         }
-
+        mainAdapter = MainAdapter()
+        binding.rvStoryItem.adapter = mainAdapter
+        binding.rvStoryItem.layoutManager = LinearLayoutManager(this)
         setupView()
-        setupAction()
-        playAnimation()
+        logoutAction()
+        viewModel.getSession().observe(this){
+            story -> if (story.isLogin){
+                val token = story.token
+                viewModel.viewModelScope.launch {
+                    try {
+                        isLoading(true)
+                        storyRepository.getStories(token= token, onSuccess = {list -> showStories(list)}, onError = {})
+                        binding.fbAdd.setOnClickListener {
+                            val intent = Intent(this@MainActivity, AddActivity::class.java)
+                            intent.putExtra("token", token)
+                            startActivity(intent)
+                        }
+                    }catch (err : Exception){
+                        Log.e("MainActivity List Story", err.message.toString())
+                    }
+                }
+            }
+        }
+    }
+
+    private fun isLoading (loading:Boolean){
+        if (loading){
+            binding.pbMain.visibility = View.VISIBLE
+        }else{
+            binding.pbMain.visibility = View.INVISIBLE
+        }
+    }
+    private fun showStories(storyList: List<ListStoryItem>) {
+        binding.apply {
+            mainAdapter = MainAdapter()
+            binding.rvStoryItem.adapter = mainAdapter
+            if (applicationContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+                rvStoryItem.layoutManager = GridLayoutManager(this@MainActivity, 3)
+            }else{
+                rvStoryItem.layoutManager = LinearLayoutManager(this@MainActivity)
+            }
+            isLoading(false)
+            mainAdapter.submitList(storyList)
+        }
     }
 
     private fun setupView() {
@@ -50,26 +102,21 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.hide()
     }
 
-    private fun setupAction() {
-        binding.logoutButton.setOnClickListener {
-            viewModel.logout()
+    private fun logoutAction() {
+        binding.mtLogout.setOnMenuItemClickListener {
+            menuItem -> when(menuItem.itemId){
+                R.id.logoutButton -> {
+                    viewModel.logout()
+                    true
+                }
+                R.id.languageButton -> {
+                    val intent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                    startActivity(intent)
+                    true
+                }
+
+            else -> false
         }
-    }
-
-    private fun playAnimation() {
-        ObjectAnimator.ofFloat(binding.ivMainImage, View.TRANSLATION_X, -30f, 30f).apply {
-            duration = 6000
-            repeatCount = ObjectAnimator.INFINITE
-            repeatMode = ObjectAnimator.REVERSE
-        }.start()
-
-        val name = ObjectAnimator.ofFloat(binding.tvMainName, View.ALPHA, 1f).setDuration(100)
-        val message = ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(100)
-        val logout = ObjectAnimator.ofFloat(binding.logoutButton, View.ALPHA, 1f).setDuration(100)
-
-        AnimatorSet().apply {
-            playSequentially(name, message, logout)
-            startDelay = 100
-        }.start()
+        }
     }
 }

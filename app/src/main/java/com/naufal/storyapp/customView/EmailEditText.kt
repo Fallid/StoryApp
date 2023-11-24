@@ -5,20 +5,20 @@ import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
+import android.util.Patterns
 import androidx.appcompat.widget.AppCompatEditText
 
 @SuppressLint("ClickableViewAccessibility")
-class PasswordEditText(context: Context, attrs: AttributeSet?) : AppCompatEditText(context, attrs) {
-    private var errorMessage = "Password less than 8 chars!"
-
+class EmailEditText(context: Context, attrs: AttributeSet?): AppCompatEditText(context, attrs) {
+    private var errorMessage = "This is not Email!"
     init {
         addTextChangedListener ( object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            override fun beforeTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {
 
             }
 
-            override fun onTextChanged(password: CharSequence?, after: Int, before: Int, count: Int) {
-                if (password.toString().length < 8){
+            override fun onTextChanged(email: CharSequence, after: Int, before: Int, count: Int) {
+                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
                     setError(errorMessage, null)
                 }else{
                     error = null
@@ -28,5 +28,4 @@ class PasswordEditText(context: Context, attrs: AttributeSet?) : AppCompatEditTe
             override fun afterTextChanged(p0: Editable?) {}
         } )
     }
-
 }

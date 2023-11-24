@@ -1,15 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">StoryApp</string>
     <string name="login">Masuk</string>
     <string name="signup">Daftar</string>
     <string name="title_welcome_page">Selamat datang di StoryApp</string>
     <string name="message_welcome_page">Mau membuat cerita fiksi, non-fiksi, bahkan cerita hidup mu? StoryApp akan mewujudkan keinginan mu.</string>
-    <string name="title_login_page">Selamat  Datang Kembali</string>
-    <string name="email" translatable="false">Email</string>
+    <string name="title_login_page">Selamat \nDatang Kembali</string>
     <string name="password">Sandi</string>
-    <string name="message_main_page" translatable="false">StoryApp</string>
     <string name="logout">Keluar</string>
-    <string name="title_signup_page">Halo 👋 Lengkapi data diri terlebih dahulu</string>
+    <string name="title_signup_page">Halo 👋\nLengkapi data diri terlebih dahulu</string>
     <string name="username">Nama Pengguna</string>
     <string name="story_description">Deskripsi Cerita</string>
     <string name="upload">Mengunggah</string>
@@ -20,7 +18,7 @@
     <string name="lanjut">Lanjut</string>
     <string name="login_gagal">Login gagal!</string>
     <string name="tutup">Tutup</string>
-    <string name="msg_pass_email_salah">Akun dengan %1$s gagal untuk login. \nPastikan email atau password sudah benar</string>
-    <string name="msg_onFailure">Akun dengan %1$s gagal untuk login. Silahkan coba beberapa saat lagi.  \n%2$s</string>
+    <string name="msg_pass_email_salah">Akun dengan %1$s gagal untuk login.  Pastikan email atau password sudah benar</string>
+    <string name="msg_onFailure">Akun dengan %1$s gagal untuk login. Silahkan coba beberapa saat lagi.   %2$s</string>
     <string name="msg_pass_email_kosong">Pastikan untuk mengisi email dan password terlebih dahulu!</string>
 </resources>

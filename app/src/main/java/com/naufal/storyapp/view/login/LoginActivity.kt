@@ -4,20 +4,24 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Patterns
+import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.naufal.storyapp.R
 import com.naufal.storyapp.data.database.UserModelAuth
+import com.naufal.storyapp.data.response.authentication.LoginResponse
+import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityLoginBinding
 import com.naufal.storyapp.view.main.MainActivity
 import com.naufal.storyapp.view.modelFactory.ViewModelFactory
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -27,30 +31,20 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
+        isLoading(false)
         setContentView(binding.root)
         layoutView()
         setAnimation()
         loginAction()
-        filterPassword()
 
     }
 
-    private fun filterPassword(){
-        binding.edLoginPassword.addTextChangedListener ( object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(password: CharSequence?, after: Int, before: Int, count: Int) {
-                if (password.toString().length < 8){
-                    binding.edLoginPassword.error = "Password less than 8 chars"
-                }else{
-                    binding.edLoginPassword.error = null
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {}
-        } )
+    private fun isLoading (loading:Boolean){
+        if (loading){
+            binding.loginProgressBar.visibility = View.VISIBLE
+        }else{
+            binding.loginProgressBar.visibility = View.INVISIBLE
+        }
     }
 
     private fun layoutView() {
@@ -68,31 +62,80 @@ class LoginActivity : AppCompatActivity() {
 
     private fun loginAction() {
         binding.loginButton.setOnClickListener {
+            isLoading(true)
             val password = binding.edLoginPassword.text.toString()
             val email = binding.edLoginEmail.text.toString()
-            val validEmail = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-            if ((password.isNotEmpty() && password.length >= 8) && (email.isNotEmpty() and validEmail)){
-                viewModel.saveSession(UserModelAuth(email, "sample_token"))
-                AlertDialog.Builder(this).apply {
-                    setTitle("Selamat Datang")
-                    setMessage("Anda berhasil login.")
-                    setPositiveButton("Lanjut") { _, _ ->
-                        val intent = Intent(context, MainActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                        startActivity(intent)
-                        finish()
+            if ((password.isNotEmpty()) && (email.isNotEmpty())){
+                val client = ApiConfig.getApiService().login(email, password)
+                client.enqueue(object : Callback<LoginResponse>{
+                    override fun onResponse(
+                        call: Call<LoginResponse>,
+                        response: Response<LoginResponse>
+                    ) {
+                        isLoading(false)
+                        val loginResponseBody = response.body()
+                        if (loginResponseBody != null){
+                            if (loginResponseBody.error == false){
+                                viewModel.saveSession(UserModelAuth(
+                                    loginResponseBody.loginResult?.userId.toString(),
+                                    loginResponseBody.loginResult?.name.toString(),
+                                    loginResponseBody.loginResult?.token.toString(),
+                                    ))
+                                    AlertDialog.Builder(this@LoginActivity).apply {
+                                    setTitle(getString(R.string.selamat_datang))
+                                    setMessage(getString(R.string.login_berhasil))
+                                    setPositiveButton(getString(R.string.lanjut)) { _, _ ->
+                                        val intent = Intent(context, MainActivity::class.java)
+                                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                        startActivity(intent)
+                                        finish()
+                                    }
+                                    create()
+                                    show()
+                                }
+                            }else{
+                                AlertDialog.Builder(this@LoginActivity).apply {
+                                    setTitle(getString(R.string.login_gagal))
+                                    setMessage(getString(R.string.msg_pass_email_salah, email))
+                                    setPositiveButton(getString(R.string.tutup)) { _, _ ->}
+                                    create()
+                                    show()
+                                }
+                            }
+                        }else{
+                            AlertDialog.Builder(this@LoginActivity).apply {
+                                setTitle(getString(R.string.login_gagal))
+                                setMessage(getString(R.string.msg_pass_email_salah, email))
+                                setPositiveButton(getString(R.string.tutup)) { _, _ -> }
+                                create()
+                                show()
+                            }
+                        }
                     }
-                    create()
-                    show()
-                }
+
+                    override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                        AlertDialog.Builder(this@LoginActivity).apply {
+                            setTitle(getString(R.string.login_gagal))
+                            setMessage(getString(R.string.msg_onFailure, email, t.message))
+                            setPositiveButton(getString(R.string.tutup)) { _, _ ->
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                        Log.e("Login error", "${t.message}")
+                    }
+
+                })
             }else{
                 AlertDialog.Builder(this).apply {
-                    setTitle("Login Gagal")
-                    setMessage("Pastikan untuk mengisi email dan password terlebih dahulu!")
-                    setNegativeButton("Tutup"){ _, _ ->}
+                    setTitle(getString(R.string.login_gagal))
+                    setMessage(getString(R.string.msg_pass_email_kosong))
+                    setNegativeButton(getString(R.string.tutup)){ _, _ ->}
                     create()
                     show()
                 }
+                isLoading(false)
             }
         }
     }
@@ -124,7 +167,7 @@ class LoginActivity : AppCompatActivity() {
                 passwordEditTextLayout,
                 login
             )
-            startDelay = 100
+            startDelay = 300
         }.start()
     }
 }

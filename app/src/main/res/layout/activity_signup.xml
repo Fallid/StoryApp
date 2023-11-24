@@ -24,7 +24,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2"
         app:srcCompat="@drawable/image_register"
-        android:contentDescription="@string/sign_up" />
+        android:contentDescription="@string/signup" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineHorizontal"
@@ -60,7 +60,7 @@
         android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
         android:alpha="0"
-        android:text="@string/name"
+        android:text="@string/username"
         android:textColor="@color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_register_title"
@@ -180,5 +180,15 @@
         app:layout_constraintTop_toBottomOf="@+id/tl_register_password"
         tools:alpha="100"
         tools:ignore="VisualLintButtonSize,TextContrastCheck,DuplicateSpeakableTextCheck" />
+
+    <ProgressBar
+        android:id="@+id/signup_progressbar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
