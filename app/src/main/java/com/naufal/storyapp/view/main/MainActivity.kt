@@ -16,10 +16,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.naufal.storyapp.R
 import com.naufal.storyapp.data.repository.StoryRepository
+import com.naufal.storyapp.data.response.story.AllStoryResponse
 import com.naufal.storyapp.data.response.story.ListStoryItem
 import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityMainBinding
 import com.naufal.storyapp.view.add.AddActivity
+import com.naufal.storyapp.view.maps.MapsActivity
 import com.naufal.storyapp.view.modelFactory.ViewModelFactory
 import com.naufal.storyapp.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
@@ -27,12 +29,17 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
     private lateinit var mainAdapter: MainAdapter
+    private lateinit var allStoryResponse: ArrayList<ListStoryItem>
     private val apiConfig = ApiConfig.getApiService()
     private val storyRepository =  StoryRepository(apiConfig)
+    private var tokens = ""
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
 
+    companion object{
+        const val LOCATION_PERMISSION = "location_stories"
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -50,14 +57,15 @@ class MainActivity : AppCompatActivity(){
         logoutAction()
         viewModel.getSession().observe(this){
             story -> if (story.isLogin){
-                val token = story.token
+                tokens = story.token
+            print(tokens)
                 viewModel.viewModelScope.launch {
                     try {
                         isLoading(true)
-                        storyRepository.getStories(token= token, onSuccess = {list -> showStories(list)}, onError = {})
+                        storyRepository.getStories(token= tokens, onSuccess = {list -> showStories(list)}, onError = {})
                         binding.fbAdd.setOnClickListener {
                             val intent = Intent(this@MainActivity, AddActivity::class.java)
-                            intent.putExtra("token", token)
+                            intent.putExtra("token", tokens)
                             startActivity(intent)
                         }
                     }catch (err : Exception){
@@ -85,7 +93,10 @@ class MainActivity : AppCompatActivity(){
                 rvStoryItem.layoutManager = LinearLayoutManager(this@MainActivity)
             }
             isLoading(false)
+            allStoryResponse = ArrayList(storyList)
+            allStoryResponse.addAll(storyList)
             mainAdapter.submitList(storyList)
+
         }
     }
 
@@ -111,6 +122,12 @@ class MainActivity : AppCompatActivity(){
                 }
                 R.id.languageButton -> {
                     val intent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                    startActivity(intent)
+                    true
+                }
+                R.id.mapsButton -> {
+                    val intent = Intent(this, MapsActivity::class.java)
+                    intent.putExtra(LOCATION_PERMISSION, allStoryResponse)
                     startActivity(intent)
                     true
                 }

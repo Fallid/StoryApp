@@ -43,6 +43,8 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Part("description") description: RequestBody,
         @Part photo: MultipartBody.Part,
+        @Part("lat") lat: Float,
+        @Part("lon") lon: Float
     ): Call<AddStoryResponse>
     @GET("stories?location=1")
     fun getLocation(
