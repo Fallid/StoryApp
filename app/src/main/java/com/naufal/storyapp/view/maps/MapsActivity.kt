@@ -2,7 +2,9 @@ package com.naufal.storyapp.view.maps
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -16,6 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.naufal.storyapp.R
 import com.naufal.storyapp.data.repository.ResultProcess
@@ -42,6 +45,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        themeMapsAction()
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -54,17 +58,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isMapToolbarEnabled = true
 
-        // Add a marker in Sydney and move the camera
         setMarker()
         getMyLocation()
+        getMapStyle()
+    }
+
+    private fun themeMapsAction(){
+        binding.mtMapsStyle.setOnMenuItemClickListener {
+            menuItem -> when(menuItem.itemId){
+            R.id.maps_normal -> {
+                mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+                true
+            }
+            R.id.maps_satellite -> {
+                mMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
+                true
+            }
+            R.id.maps_terrain -> {
+                mMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+                true
+            }
+            R.id.maps_hybrid -> {
+                mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+                true
+            }
+
+            else -> false
+        }
+    }
     }
 
     private fun setMarker(){
-        mapsViewModel.getLocation().observe(this) { result ->
-            if (result != null) {
-                when (result) {
+        mapsViewModel.getLocation().observe(this) { response ->
+            if (response != null) {
+                when (response) {
                     is ResultProcess.Success -> {
-                        result.data.forEach { data ->
+                        response.data.forEach { data ->
                             val latLng = LatLng(data.lat, data.lon)
                             mMap.addMarker(
                                 MarkerOptions()
@@ -80,7 +109,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 bounds,
                                 resources.displayMetrics.widthPixels,
                                 resources.displayMetrics.heightPixels,
-                                300
+                                15
                             )
                         )
                     }
@@ -88,7 +117,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     is ResultProcess.Error -> {
                         Toast.makeText(
                             application,
-                            "Error: ${result.error}",
+                            "Error: ${response.error}",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -108,6 +137,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             mMap.isMyLocationEnabled = true
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    private fun getMapStyle(){
+        try{
+            val onSuccess = mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
+            if (!onSuccess){
+                Log.e("MapsActivity", "Styling failed")
+                Toast.makeText(this, "Styling map failed", Toast.LENGTH_SHORT).show()
+            }
+        }catch (err: Resources.NotFoundException){
+            Log.e("Maps Resource", "No file resource", err)
         }
     }
 }

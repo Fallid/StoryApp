@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:menuCategory="container">
+        <item
+            android:id="@+id/maps_normal"
+            android:title="@string/normal"
+            app:showAsAction="never"/>
+        <item
+            android:id="@+id/maps_satellite"
+            android:title="@string/satellite"
+            app:showAsAction="never"/>
+        <item
+            android:id="@+id/maps_terrain"
+            android:title="@string/terrain"
+            app:showAsAction="never"/>
+        <item
+            android:id="@+id/maps_hybrid"
+            android:title="@string/hybrid"
+            app:showAsAction="never"/>
+    </group>
+
+</menu>
