@@ -10,6 +10,7 @@ import retrofit2.Call
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -41,11 +42,12 @@ interface ApiService {
     @Multipart
     @POST("stories")
     fun newStory(
+        @Header("Authorization") token: String,
         @Part("description") description: RequestBody,
         @Part photo: MultipartBody.Part,
-        @Part("lat") lat: RequestBody,
-        @Part("lon") lon: RequestBody
-    ): AddStoryResponse
+        @Part("lat") lat: Float,
+        @Part("lon") lon: Float
+    ): Call<AddStoryResponse>
 
     @GET("stories?location=1")
     suspend fun getLocation(

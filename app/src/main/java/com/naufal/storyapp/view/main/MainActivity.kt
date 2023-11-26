@@ -1,7 +1,6 @@
 package com.naufal.storyapp.view.main
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -12,13 +11,9 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.viewModelScope
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.naufal.storyapp.R
-import com.naufal.storyapp.data.repository.StoryRepository
-import com.naufal.storyapp.data.response.story.AllStoryResponse
 import com.naufal.storyapp.data.response.story.ListStoryItem
-import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityMainBinding
 import com.naufal.storyapp.view.add.AddActivity
 import com.naufal.storyapp.view.maps.MapsActivity
@@ -29,15 +24,11 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
     private lateinit var mainAdapter: MainAdapter
-    private lateinit var allStoryResponse: ArrayList<ListStoryItem>
     private var tokens = ""
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
 
-    companion object{
-        const val LOCATION_PERMISSION = "location_stories"
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -56,7 +47,6 @@ class MainActivity : AppCompatActivity(){
         viewModel.getSession().observe(this){
             story -> if (story.isLogin){
                 tokens = story.token
-            print(tokens)
                 viewModel.viewModelScope.launch {
                     try {
                         isLoading(true)

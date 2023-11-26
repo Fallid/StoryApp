@@ -14,12 +14,7 @@ import com.naufal.storyapp.view.paging.StoryPaging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
-import java.io.File
 
 class UserAuthRepository private constructor(
     private val userPreference: UserAuthPreference
@@ -34,35 +29,6 @@ class UserAuthRepository private constructor(
 
     suspend fun logout() {
         userPreference.logout()
-    }
-
-
-    fun addStory(
-        description: String,
-        imageFile: File,
-        latitude: Double,
-        longitude: Double
-    ) = liveData {
-        emit(ResultProcess.Loading)
-        val descriptionRequestBody = description.toRequestBody("text/plain".toMediaType())
-        val latitudeRequestBody = latitude.toString().toRequestBody(MultipartBody.FORM)
-        val longitudeRequestBody = longitude.toString().toRequestBody(MultipartBody.FORM)
-        val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
-        val multipartBody = MultipartBody.Part.createFormData(
-            "photo",
-            imageFile.name,
-            requestImageFile
-        )
-        try {
-            val user = runBlocking { userPreference.getSession().first() }
-            val apiService = ApiConfig.getApiService(user.token)
-            val successResponse =
-                apiService.newStory(descriptionRequestBody,multipartBody, latitudeRequestBody, longitudeRequestBody)
-            emit(ResultProcess.Success(successResponse))
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            emit(ResultProcess.Error(errorBody.toString()))
-        }
     }
 
     fun getLocation() = liveData {
