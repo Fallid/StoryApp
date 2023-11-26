@@ -1,6 +1,7 @@
 package com.naufal.storyapp.view.main
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -11,9 +12,9 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.viewModelScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.naufal.storyapp.R
-import com.naufal.storyapp.data.response.story.ListStoryItem
 import com.naufal.storyapp.databinding.ActivityMainBinding
 import com.naufal.storyapp.view.add.AddActivity
 import com.naufal.storyapp.view.maps.MapsActivity
@@ -41,7 +42,12 @@ class MainActivity : AppCompatActivity(){
         }
         mainAdapter = MainAdapter()
         binding.rvStoryItem.adapter = mainAdapter
-        binding.rvStoryItem.layoutManager = LinearLayoutManager(this)
+        if (applicationContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            binding.rvStoryItem.layoutManager = GridLayoutManager(this@MainActivity, 3)
+        }else{
+            binding.rvStoryItem.layoutManager = LinearLayoutManager(this@MainActivity)
+        }
+        isLoading(false)
         setupView()
         logoutAction()
         viewModel.getSession().observe(this){
