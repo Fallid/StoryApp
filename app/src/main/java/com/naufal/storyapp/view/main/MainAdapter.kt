@@ -16,7 +16,7 @@ import com.squareup.picasso.Picasso
 
 class MainAdapter: PagingDataAdapter<ListStoryItem, MainAdapter.MainViewHolder>(ResponseCallback) {
     companion object {
-        private val ResponseCallback = object : DiffUtil.ItemCallback<ListStoryItem>() {
+        val ResponseCallback = object : DiffUtil.ItemCallback<ListStoryItem>() {
             override fun areItemsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
                 return oldItem.id == newItem.id
             }
