@@ -4,10 +4,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
-import android.util.Patterns
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -60,8 +57,7 @@ class SignupActivity : AppCompatActivity() {
                 isLoading(true)
                 lifecycleScope.launch {
                     try {
-                        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyLVBTd3VSRVdveUhtRE5fYkIiLCJpYXQiOjE3MDA4ODE0Mjl9.64IOBDHv6MQvNsKWCnldewoGS0mUgtVnbxR1rotRmYw"
-                        val registerResponse = ApiConfig.getApiService(token).register(name, email, password)
+                        val registerResponse = ApiConfig.getApiAuth().register(name, email, password)
                         isLoading(false)
                         if (registerResponse.error == false){
                             AlertDialog.Builder(this@SignupActivity).apply {
@@ -86,6 +82,15 @@ class SignupActivity : AppCompatActivity() {
                         }
                     }catch (err: Exception){
                         isLoading(false)
+                        AlertDialog.Builder(this@SignupActivity).apply {
+                            setTitle("Register gagal!")
+                            setMessage("Akun dengan $email gagal dibuat. Silahkan coba beberapa saat lagi.  \n${err.message}")
+                            setPositiveButton("Tutup") { _, _ ->
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
                         Log.e("Response error", err.toString())
                     }
                 }
