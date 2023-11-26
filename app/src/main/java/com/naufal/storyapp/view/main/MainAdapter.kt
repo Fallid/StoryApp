@@ -6,17 +6,17 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.util.Pair
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.naufal.storyapp.data.response.story.ListStoryItem
 import com.naufal.storyapp.databinding.StorylayoutBinding
 import com.naufal.storyapp.view.detailStory.DetailActivity
 import com.squareup.picasso.Picasso
 
-class MainAdapter: ListAdapter<ListStoryItem, MainAdapter.MainViewHolder>(ResponseCallback) {
+class MainAdapter: PagingDataAdapter<ListStoryItem, MainAdapter.MainViewHolder>(ResponseCallback) {
     companion object {
-        private val ResponseCallback = object : DiffUtil.ItemCallback<ListStoryItem>() {
+        val ResponseCallback = object : DiffUtil.ItemCallback<ListStoryItem>() {
             override fun areItemsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
                 return oldItem.id == newItem.id
             }
@@ -52,7 +52,9 @@ class MainAdapter: ListAdapter<ListStoryItem, MainAdapter.MainViewHolder>(Respon
 
     override fun onBindViewHolder(holder: MainViewHolder, position: Int) {
         val currentStory = getItem(position)
-        holder.bind(currentStory)
+        if (currentStory != null) {
+            holder.bind(currentStory)
+        }
     }
 
 

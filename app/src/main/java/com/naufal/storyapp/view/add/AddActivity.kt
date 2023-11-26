@@ -5,6 +5,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.naufal.storyapp.R
 import com.naufal.storyapp.data.response.story.AddStoryResponse
@@ -39,19 +42,47 @@ import retrofit2.HttpException
 import retrofit2.Response
 
 class AddActivity : AppCompatActivity() {
-    private lateinit var imageView:ImageView
+    private lateinit var imageView: ImageView
     private lateinit var binding: ActivityAddBinding
+    private lateinit var location: Location
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var currentImageUri: Uri? = null
+    private val requestLocationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            when {
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false -> {
+                    getMyLastLocation()
+                }
 
-    companion object{
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false -> {
+                    getMyLastLocation()
+                }
+
+                else -> {
+                }
+            }
+        }
+
+    companion object {
         private val CAMERA_PERMISSION = arrayOf(Manifest.permission.CAMERA)
     }
 
-    private fun requiredPermission() : Boolean{
+    private fun requiredPermission(): Boolean {
         return CAMERA_PERMISSION.all {
-            ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                applicationContext,
+                it
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
+
+    private fun checkPermission(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val token = intent.getStringExtra("token")
@@ -60,19 +91,21 @@ class AddActivity : AppCompatActivity() {
         imageView = binding.ivAddImage
         layoutView()
         setAnimation()
-        if (!requiredPermission()){
+        if (!requiredPermission()) {
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSION, 200)
         }
         binding.btnGallery.setOnClickListener { startGallery() }
-        binding.btnCamera.setOnClickListener{startCamera()}
+        binding.btnCamera.setOnClickListener { startCamera() }
         binding.btnUpload.setOnClickListener {
             if (token != null) {
                 uploadAction("Bearer $token")
             }
         }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        getMyLastLocation()
     }
 
-    private fun uploadAction(token:String) {
+    private fun uploadAction(token: String) {
         currentImageUri?.let { uri ->
             val imageFile = uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
@@ -80,6 +113,8 @@ class AddActivity : AppCompatActivity() {
             isLoading(true)
             val requestBody = description.toRequestBody("text/plain".toMediaType())
             val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
+            val latitudeUploader = location.latitude.toFloat()
+            val longtitudeUploader = location.longitude.toFloat()
             val multipartBody = MultipartBody.Part.createFormData(
                 "photo",
                 imageFile.name,
@@ -87,9 +122,15 @@ class AddActivity : AppCompatActivity() {
             )
             lifecycleScope.launch {
                 try {
-                    val apiService = ApiConfig.getApiService()
-                    val successResponse = apiService.newStory(token, requestBody, multipartBody)
-                    successResponse.enqueue(object : Callback<AddStoryResponse>{
+                    val apiService = ApiConfig.getApiAuth()
+                    val successResponse = apiService.newStory(
+                        token,
+                        requestBody,
+                        multipartBody,
+                        latitudeUploader,
+                        longtitudeUploader
+                    )
+                    successResponse.enqueue(object : Callback<AddStoryResponse> {
                         override fun onResponse(
                             call: Call<AddStoryResponse>,
                             response: Response<AddStoryResponse>
@@ -97,7 +138,8 @@ class AddActivity : AppCompatActivity() {
                             showToast(response.message())
                             isLoading(false)
                             val intent = Intent(this@AddActivity, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                            intent.flags =
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                             startActivity(intent)
                         }
 
@@ -131,10 +173,12 @@ class AddActivity : AppCompatActivity() {
             Log.d("Photo Picker", "No media selected")
         }
     }
-    private fun startCamera(){
+
+    private fun startCamera() {
         val intent = Intent(this, Camera::class.java)
         launcherIntentCameraX.launch(intent)
     }
+
     private val launcherIntentCameraX = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
@@ -147,16 +191,43 @@ class AddActivity : AppCompatActivity() {
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
+
     private fun showImage() {
         currentImageUri?.let {
             Log.d("Image URI", "showImage: $it")
             binding.ivAddImage.setImageURI(it)
         }
     }
-    private fun isLoading (loading:Boolean){
-        if (loading){
+
+    private fun getMyLastLocation() {
+        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION) &&
+            checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+        ) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { locs: Location? ->
+                if (locs != null) {
+                    location = locs
+                } else {
+                    Toast.makeText(
+                        this@AddActivity,
+                        "Location is not found. Try Again",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } else {
+            requestLocationPermission.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    private fun isLoading(loading: Boolean) {
+        if (loading) {
             binding.pbAddStory.visibility = View.VISIBLE
-        }else{
+        } else {
             binding.pbAddStory.visibility = View.INVISIBLE
         }
     }
@@ -173,11 +244,16 @@ class AddActivity : AppCompatActivity() {
         }
         supportActionBar?.show()
     }
+
     private fun setAnimation() {
-        val buttonCamera = ObjectAnimator.ofFloat(binding.btnCamera, View.ALPHA, 1f).setDuration(1000)
-        val buttonGallery = ObjectAnimator.ofFloat(binding.btnGallery, View.ALPHA, 1f).setDuration(1000)
-        val editTextDesc = ObjectAnimator.ofFloat(binding.edAddDescription, View.ALPHA, 1f).setDuration(1000)
-        val buttonUpload = ObjectAnimator.ofFloat(binding.btnUpload, View.ALPHA, 1f).setDuration(1000)
+        val buttonCamera =
+            ObjectAnimator.ofFloat(binding.btnCamera, View.ALPHA, 1f).setDuration(1000)
+        val buttonGallery =
+            ObjectAnimator.ofFloat(binding.btnGallery, View.ALPHA, 1f).setDuration(1000)
+        val editTextDesc =
+            ObjectAnimator.ofFloat(binding.edAddDescription, View.ALPHA, 1f).setDuration(1000)
+        val buttonUpload =
+            ObjectAnimator.ofFloat(binding.btnUpload, View.ALPHA, 1f).setDuration(1000)
 
 
         AnimatorSet().apply {

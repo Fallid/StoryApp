@@ -8,6 +8,7 @@ import com.naufal.storyapp.data.repository.UserAuthRepository
 object Injection {
     fun provideRepository(context: Context): UserAuthRepository {
         val pref = UserAuthPreference.getInstance(context.dataStore)
+
         return UserAuthRepository.getInstance(pref)
     }
 }

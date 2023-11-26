@@ -3,8 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <group android:menuCategory="container">
         <item
+            android:id="@+id/mapsButton"
+            android:title="Maps"
+            android:icon="@drawable/baseline_location_on_24"
+            app:showAsAction="ifRoom"/>
+        <item
             android:id="@+id/languageButton"
-            android:title="Multi-Language"
+            android:title="@string/multi_language"
             android:icon="@drawable/baseline_g_translate_24"
             app:showAsAction="ifRoom"
             android:iconTint="@color/background"/>

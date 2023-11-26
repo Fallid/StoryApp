@@ -23,4 +23,11 @@
     <string name="msg_pass_email_salah">Akun dengan %1$s gagal untuk login. \nPastikan email atau password sudah benar</string>
     <string name="msg_onFailure">Akun dengan %1$s gagal untuk login. Silahkan coba beberapa saat lagi.  \n%2$s</string>
     <string name="msg_pass_email_kosong">Pastikan untuk mengisi email dan password terlebih dahulu!</string>
+    <string name="title_activity_maps" translatable="false">MapsActivity</string>
+    <string name="multi_language" translatable="false">Multi-Language</string>
+    <string name="normal" translatable="false">Normal</string>
+    <string name="satellite" translatable="false">Satellite</string>
+    <string name="terrain" translatable="false">Terrain</string>
+    <string name="hybrid" translatable="false">Hybrid</string>
+    <string name="stories_location" translatable="false">Stories Location</string>
 </resources>

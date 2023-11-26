@@ -15,11 +15,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.naufal.storyapp.R
-import com.naufal.storyapp.data.repository.StoryRepository
-import com.naufal.storyapp.data.response.story.ListStoryItem
-import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityMainBinding
 import com.naufal.storyapp.view.add.AddActivity
+import com.naufal.storyapp.view.maps.MapsActivity
 import com.naufal.storyapp.view.modelFactory.ViewModelFactory
 import com.naufal.storyapp.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
@@ -27,8 +25,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
     private lateinit var mainAdapter: MainAdapter
-    private val apiConfig = ApiConfig.getApiService()
-    private val storyRepository =  StoryRepository(apiConfig)
+    private var tokens = ""
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
@@ -45,19 +42,27 @@ class MainActivity : AppCompatActivity(){
         }
         mainAdapter = MainAdapter()
         binding.rvStoryItem.adapter = mainAdapter
-        binding.rvStoryItem.layoutManager = LinearLayoutManager(this)
+        if (applicationContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            binding.rvStoryItem.layoutManager = GridLayoutManager(this@MainActivity, 3)
+        }else{
+            binding.rvStoryItem.layoutManager = LinearLayoutManager(this@MainActivity)
+        }
+        isLoading(false)
         setupView()
         logoutAction()
         viewModel.getSession().observe(this){
             story -> if (story.isLogin){
-                val token = story.token
+                tokens = story.token
                 viewModel.viewModelScope.launch {
                     try {
                         isLoading(true)
-                        storyRepository.getStories(token= token, onSuccess = {list -> showStories(list)}, onError = {})
+                        viewModel.getStory().observe(this@MainActivity){
+                            isLoading(false)
+                            mainAdapter.submitData(lifecycle, it)
+                        }
                         binding.fbAdd.setOnClickListener {
                             val intent = Intent(this@MainActivity, AddActivity::class.java)
-                            intent.putExtra("token", token)
+                            intent.putExtra("token", tokens)
                             startActivity(intent)
                         }
                     }catch (err : Exception){
@@ -73,19 +78,6 @@ class MainActivity : AppCompatActivity(){
             binding.pbMain.visibility = View.VISIBLE
         }else{
             binding.pbMain.visibility = View.INVISIBLE
-        }
-    }
-    private fun showStories(storyList: List<ListStoryItem>) {
-        binding.apply {
-            mainAdapter = MainAdapter()
-            binding.rvStoryItem.adapter = mainAdapter
-            if (applicationContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
-                rvStoryItem.layoutManager = GridLayoutManager(this@MainActivity, 3)
-            }else{
-                rvStoryItem.layoutManager = LinearLayoutManager(this@MainActivity)
-            }
-            isLoading(false)
-            mainAdapter.submitList(storyList)
         }
     }
 
@@ -111,6 +103,11 @@ class MainActivity : AppCompatActivity(){
                 }
                 R.id.languageButton -> {
                     val intent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                    startActivity(intent)
+                    true
+                }
+                R.id.mapsButton -> {
+                    val intent = Intent(this, MapsActivity::class.java)
                     startActivity(intent)
                     true
                 }

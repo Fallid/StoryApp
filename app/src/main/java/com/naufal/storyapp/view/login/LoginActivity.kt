@@ -66,7 +66,7 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.edLoginPassword.text.toString()
             val email = binding.edLoginEmail.text.toString()
             if ((password.isNotEmpty()) && (email.isNotEmpty())){
-                val client = ApiConfig.getApiService().login(email, password)
+                val client = ApiConfig.getApiAuth().login(email, password)
                 client.enqueue(object : Callback<LoginResponse>{
                     override fun onResponse(
                         call: Call<LoginResponse>,
@@ -77,9 +77,9 @@ class LoginActivity : AppCompatActivity() {
                         if (loginResponseBody != null){
                             if (loginResponseBody.error == false){
                                 viewModel.saveSession(UserModelAuth(
-                                    loginResponseBody.loginResult?.userId.toString(),
-                                    loginResponseBody.loginResult?.name.toString(),
-                                    loginResponseBody.loginResult?.token.toString(),
+                                    loginResponseBody.loginResult.userId,
+                                    loginResponseBody.loginResult.name,
+                                    loginResponseBody.loginResult.token,
                                     ))
                                     AlertDialog.Builder(this@LoginActivity).apply {
                                     setTitle(getString(R.string.selamat_datang))
