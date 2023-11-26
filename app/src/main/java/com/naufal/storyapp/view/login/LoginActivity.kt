@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -13,15 +14,19 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.naufal.storyapp.R
 import com.naufal.storyapp.data.database.UserModelAuth
-import com.naufal.storyapp.data.repository.ResultProcess
+import com.naufal.storyapp.data.response.authentication.LoginResponse
+import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityLoginBinding
 import com.naufal.storyapp.view.main.MainActivity
 import com.naufal.storyapp.view.modelFactory.ViewModelFactory
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private val viewModel by viewModels<LoginViewModel> {
-        ViewModelFactory.getInstance(application)
+        ViewModelFactory.getInstance(this)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,64 +66,67 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.edLoginPassword.text.toString()
             val email = binding.edLoginEmail.text.toString()
             if ((password.isNotEmpty()) && (email.isNotEmpty())){
-                try {
-                    viewModel.login(email, password)
-                        .observe(this) { response ->
-                            if (response != null) {
-                                when (response) {
-                                    is ResultProcess.Loading -> {
-                                        isLoading(true)
+                val client = ApiConfig.getApiAuth().login(email, password)
+                client.enqueue(object : Callback<LoginResponse>{
+                    override fun onResponse(
+                        call: Call<LoginResponse>,
+                        response: Response<LoginResponse>
+                    ) {
+                        isLoading(false)
+                        val loginResponseBody = response.body()
+                        if (loginResponseBody != null){
+                            if (loginResponseBody.error == false){
+                                viewModel.saveSession(UserModelAuth(
+                                    loginResponseBody.loginResult.userId,
+                                    loginResponseBody.loginResult.name,
+                                    loginResponseBody.loginResult.token,
+                                    ))
+                                    AlertDialog.Builder(this@LoginActivity).apply {
+                                    setTitle(getString(R.string.selamat_datang))
+                                    setMessage(getString(R.string.login_berhasil))
+                                    setPositiveButton(getString(R.string.lanjut)) { _, _ ->
+                                        val intent = Intent(context, MainActivity::class.java)
+                                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                        startActivity(intent)
+                                        finish()
                                     }
-
-                                    is ResultProcess.Success -> {
-                                        viewModel.saveSession(
-                                            UserModelAuth(
-                                                response.data.loginResult.userId,
-                                                response.data.loginResult.name,
-                                                response.data.loginResult.token,
-
-                                                )
-                                        )
-                                        isLoading(false)
-                                        AlertDialog.Builder(this).apply {
-                                            setTitle("Login ${response.data.message}!")
-                                            setMessage("Welcome ${response.data.loginResult.name} to StoryApp")
-                                            setPositiveButton("Next") { _, _ ->
-                                                val intent = Intent(context, MainActivity::class.java)
-                                                intent.flags =
-                                                    Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                                                startActivity(intent)
-                                                finish()
-                                            }
-                                            create()
-                                            show()
-                                        }
-                                    }
-
-                                    is ResultProcess.Error -> {
-                                        isLoading(false)
-                                        AlertDialog.Builder(this@LoginActivity).apply {
-                                            setTitle(getString(R.string.login_gagal))
-                                            setMessage(getString(R.string.msg_pass_email_salah, email))
-                                            setPositiveButton(getString(R.string.tutup)) { _, _ ->}
-                                            create()
-                                            show()
-                                        }
-                                    }
+                                    create()
+                                    show()
+                                }
+                            }else{
+                                AlertDialog.Builder(this@LoginActivity).apply {
+                                    setTitle(getString(R.string.login_gagal))
+                                    setMessage(getString(R.string.msg_pass_email_salah, email))
+                                    setPositiveButton(getString(R.string.tutup)) { _, _ ->}
+                                    create()
+                                    show()
                                 }
                             }
+                        }else{
+                            AlertDialog.Builder(this@LoginActivity).apply {
+                                setTitle(getString(R.string.login_gagal))
+                                setMessage(getString(R.string.msg_pass_email_salah, email))
+                                setPositiveButton(getString(R.string.tutup)) { _, _ -> }
+                                create()
+                                show()
+                            }
                         }
-                }catch (err:Exception){
-                    AlertDialog.Builder(this@LoginActivity).apply {
-                        setTitle(getString(R.string.login_gagal))
-                        setMessage(getString(R.string.msg_onFailure, email, err.message))
-                        setPositiveButton(getString(R.string.tutup)) { _, _ ->
-                            finish()
-                        }
-                        create()
-                        show()
                     }
-                }
+
+                    override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                        AlertDialog.Builder(this@LoginActivity).apply {
+                            setTitle(getString(R.string.login_gagal))
+                            setMessage(getString(R.string.msg_onFailure, email, t.message))
+                            setPositiveButton(getString(R.string.tutup)) { _, _ ->
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                        Log.e("Login error", "${t.message}")
+                    }
+
+                })
             }else{
                 AlertDialog.Builder(this).apply {
                     setTitle(getString(R.string.login_gagal))

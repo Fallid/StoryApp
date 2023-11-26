@@ -38,17 +38,6 @@ class UserAuthRepository private constructor(
         userPreference.logout()
     }
 
-    fun login(Email: String, Password: String) = liveData {
-        emit(ResultProcess.Loading)
-        try {
-            val response = apiService.login(Email, Password)
-            emit(ResultProcess.Success(response))
-        } catch (e: HttpException) {
-            val jsonInString = e.response()?.errorBody()?.string()
-            val errorMessage = jsonInString.toString()
-            emit(ResultProcess.Error(errorMessage))
-        }
-    }
 
     fun addStory(
         description: String,

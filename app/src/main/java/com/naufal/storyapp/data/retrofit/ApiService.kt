@@ -27,10 +27,10 @@ interface ApiService {
 
     @FormUrlEncoded
     @POST("login")
-    suspend fun login(
+    fun login(
         @Field("email") email: String,
         @Field("password") password: String
-    ): LoginResponse
+    ): Call<LoginResponse>
 
     @GET("stories")
     suspend fun getStories(
