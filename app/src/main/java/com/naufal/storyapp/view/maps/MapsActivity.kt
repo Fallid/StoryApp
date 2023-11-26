@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -18,15 +19,17 @@ import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.naufal.storyapp.R
 import com.naufal.storyapp.data.repository.ResultProcess
-import com.naufal.storyapp.data.response.story.ListStoryItem
 import com.naufal.storyapp.databinding.ActivityMapsBinding
+import com.naufal.storyapp.view.modelFactory.ViewModelFactory
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var mapsViewModel: MapsViewModel
     private val boundsBuilder = LatLngBounds.Builder()
+    private val mapsViewModel by viewModels<MapsViewModel> {
+        ViewModelFactory.getInstance(application)
+    }
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
@@ -50,7 +53,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isIndoorLevelPickerEnabled = true
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isMapToolbarEnabled = true
-        mapsViewModel.getStoriesWithLocation().observe(this) { result ->
+
+        // Add a marker in Sydney and move the camera
+        setMarker()
+        getMyLocation()
+    }
+
+    private fun setMarker(){
+        mapsViewModel.getLocation().observe(this) { result ->
             if (result != null) {
                 when (result) {
                     is ResultProcess.Success -> {
@@ -64,7 +74,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             )
                             boundsBuilder.include(latLng)
                         }
-
                         val bounds: LatLngBounds = boundsBuilder.build()
                         mMap.animateCamera(
                             CameraUpdateFactory.newLatLngBounds(
@@ -88,13 +97,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
-        // Add a marker in Sydney and move the camera
-        val bounds: LatLngBounds = boundsBuilder.build()
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
-            bounds,
-            resources.displayMetrics.widthPixels,
-            resources.displayMetrics.heightPixels, 300))
-        getMyLocation()
     }
 
     private fun getMyLocation() {
