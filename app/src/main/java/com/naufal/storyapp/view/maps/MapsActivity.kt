@@ -3,24 +3,30 @@ package com.naufal.storyapp.view.maps
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.naufal.storyapp.R
+import com.naufal.storyapp.data.repository.ResultProcess
 import com.naufal.storyapp.data.response.story.ListStoryItem
 import com.naufal.storyapp.databinding.ActivityMapsBinding
-import com.naufal.storyapp.view.main.MainActivity
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    private lateinit var allStoryResponse: ArrayList<ListStoryItem>
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var mapsViewModel: MapsViewModel
+    private val boundsBuilder = LatLngBounds.Builder()
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
@@ -33,10 +39,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        allStoryResponse = intent.getParcelableArrayListExtra<ListStoryItem>(MainActivity.LOCATION_PERMISSION) as ArrayList<ListStoryItem>        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -44,20 +50,50 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isIndoorLevelPickerEnabled = true
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isMapToolbarEnabled = true
-        for (story in allStoryResponse) {
-            if (story.lat != null && story.lon != null) {
-                val position = LatLng(story.lat, story.lon)
-                mMap.addMarker(
-                    MarkerOptions()
-                        .position(position)
-                        .title(story.name)
-                        .snippet(story.description)
-                )
+        mapsViewModel.getStoriesWithLocation().observe(this) { result ->
+            if (result != null) {
+                when (result) {
+                    is ResultProcess.Success -> {
+                        result.data.forEach { data ->
+                            val latLng = LatLng(data.lat, data.lon)
+                            mMap.addMarker(
+                                MarkerOptions()
+                                    .position(latLng)
+                                    .title(data.name)
+                                    .snippet(data.description)
+                            )
+                            boundsBuilder.include(latLng)
+                        }
+
+                        val bounds: LatLngBounds = boundsBuilder.build()
+                        mMap.animateCamera(
+                            CameraUpdateFactory.newLatLngBounds(
+                                bounds,
+                                resources.displayMetrics.widthPixels,
+                                resources.displayMetrics.heightPixels,
+                                300
+                            )
+                        )
+                    }
+
+                    is ResultProcess.Error -> {
+                        Toast.makeText(
+                            application,
+                            "Error: ${result.error}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> {}
+                }
             }
         }
         // Add a marker in Sydney and move the camera
-        val firstLocation = LatLng(allStoryResponse[0].lat , allStoryResponse[0].lon )
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, 15f))
+        val bounds: LatLngBounds = boundsBuilder.build()
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(
+            bounds,
+            resources.displayMetrics.widthPixels,
+            resources.displayMetrics.heightPixels, 300))
         getMyLocation()
     }
 

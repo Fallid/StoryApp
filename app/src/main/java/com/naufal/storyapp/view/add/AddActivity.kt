@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -18,6 +17,9 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -26,20 +28,14 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.naufal.storyapp.R
+import com.naufal.storyapp.data.repository.ResultProcess
 import com.naufal.storyapp.data.response.story.AddStoryResponse
-import com.naufal.storyapp.data.retrofit.ApiConfig
 import com.naufal.storyapp.databinding.ActivityAddBinding
 import com.naufal.storyapp.view.add.Camera.Companion.CAMERAX_RESULT
 import com.naufal.storyapp.view.main.MainActivity
+import com.naufal.storyapp.view.modelFactory.ViewModelFactory
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.HttpException
-import retrofit2.Response
 
 class AddActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
@@ -47,6 +43,9 @@ class AddActivity : AppCompatActivity() {
     private lateinit var location: Location
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var currentImageUri: Uri? = null
+    private val viewModel by viewModels<AddViewModel> {
+        ViewModelFactory.getInstance(application)
+    }
     private val requestLocationPermission =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             when {
@@ -85,7 +84,6 @@ class AddActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val token = intent.getStringExtra("token")
         binding = ActivityAddBinding.inflate(layoutInflater)
         setContentView(binding.root)
         imageView = binding.ivAddImage
@@ -97,58 +95,59 @@ class AddActivity : AppCompatActivity() {
         binding.btnGallery.setOnClickListener { startGallery() }
         binding.btnCamera.setOnClickListener { startCamera() }
         binding.btnUpload.setOnClickListener {
-            if (token != null) {
-                uploadAction("Bearer $token")
-            }
+            uploadAction()
         }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         getMyLastLocation()
     }
 
-    private fun uploadAction(token: String) {
+    private fun uploadAction() {
         currentImageUri?.let { uri ->
             val imageFile = uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
             val description = binding.edAddDescription.text.toString()
             isLoading(true)
-            val requestBody = description.toRequestBody("text/plain".toMediaType())
-            val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
-            val latitudeUploader = location.latitude.toFloat()
-            val longtitudeUploader = location.longitude.toFloat()
-            val multipartBody = MultipartBody.Part.createFormData(
-                "photo",
-                imageFile.name,
-                requestImageFile
-            )
+            val latitudeUploader = location.latitude
+            val longtitudeUploader = location.longitude
+
             lifecycleScope.launch {
                 try {
-                    val apiService = ApiConfig.getApiService()
-                    val successResponse = apiService.newStory(
-                        token,
-                        requestBody,
-                        multipartBody,
-                        latitudeUploader,
-                        longtitudeUploader
-                    )
-                    successResponse.enqueue(object : Callback<AddStoryResponse> {
-                        override fun onResponse(
-                            call: Call<AddStoryResponse>,
-                            response: Response<AddStoryResponse>
-                        ) {
-                            showToast(response.message())
-                            isLoading(false)
-                            val intent = Intent(this@AddActivity, MainActivity::class.java)
-                            intent.flags =
-                                Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                            startActivity(intent)
-                        }
+                    viewModel.addStory(description, imageFile, latitudeUploader,longtitudeUploader).observe(this@AddActivity) { response ->
+                        if (response != null) {
+                            when (response) {
+                                is ResultProcess.Loading -> {
+                                    isLoading(true)
+                                }
 
-                        override fun onFailure(call: Call<AddStoryResponse>, t: Throwable) {
-                            showToast(t.message.toString())
+                                is ResultProcess.Success -> {
+                                    Toast.makeText(this@AddActivity, response.data.message, Toast.LENGTH_SHORT).show()
+                                    isLoading(false)
+                                    val intent = Intent(this@AddActivity, MainActivity::class.java)
+                                    intent.flags =
+                                        Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    startActivity(intent)
+                                }
+
+                                is ResultProcess.Error -> {
+                                    isLoading(false)
+                                    Toast.makeText(
+                                        application,
+                                        "Error: ${response.error}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                        }else{
                             isLoading(false)
+                            AlertDialog.Builder(this@AddActivity).apply {
+                                setTitle(getString(R.string.login_gagal))
+                                setMessage(getString(R.string.msg_pass_email_kosong))
+                                setNegativeButton(getString(R.string.tutup)) { _, _ -> }
+                                create()
+                                show()
+                            }
                         }
-                    })
-                    isLoading(false)
+                    }
                 } catch (e: HttpException) {
                     val errorBody = e.response()?.errorBody()?.string()
                     val errorResponse = Gson().fromJson(errorBody, AddStoryResponse::class.java)

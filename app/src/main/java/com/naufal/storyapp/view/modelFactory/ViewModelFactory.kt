@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.naufal.storyapp.data.injection.Injection
 import com.naufal.storyapp.data.repository.UserAuthRepository
+import com.naufal.storyapp.view.add.AddViewModel
 import com.naufal.storyapp.view.login.LoginViewModel
 import com.naufal.storyapp.view.main.MainViewModel
+import com.naufal.storyapp.view.maps.MapsViewModel
 
 class ViewModelFactory (private val repository: UserAuthRepository) : ViewModelProvider.NewInstanceFactory() {
 
@@ -18,6 +20,9 @@ class ViewModelFactory (private val repository: UserAuthRepository) : ViewModelP
             }
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
                 LoginViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(AddViewModel::class.java) -> {
+                AddViewModel(repository) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }

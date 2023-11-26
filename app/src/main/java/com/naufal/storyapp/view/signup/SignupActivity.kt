@@ -60,7 +60,8 @@ class SignupActivity : AppCompatActivity() {
                 isLoading(true)
                 lifecycleScope.launch {
                     try {
-                        val registerResponse = ApiConfig.getApiService().register(name, email, password)
+                        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyLVBTd3VSRVdveUhtRE5fYkIiLCJpYXQiOjE3MDA4ODE0Mjl9.64IOBDHv6MQvNsKWCnldewoGS0mUgtVnbxR1rotRmYw"
+                        val registerResponse = ApiConfig.getApiService(token).register(name, email, password)
                         isLoading(false)
                         if (registerResponse.error == false){
                             AlertDialog.Builder(this@SignupActivity).apply {

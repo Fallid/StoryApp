@@ -30,8 +30,6 @@ class MainActivity : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
     private lateinit var mainAdapter: MainAdapter
     private lateinit var allStoryResponse: ArrayList<ListStoryItem>
-    private val apiConfig = ApiConfig.getApiService()
-    private val storyRepository =  StoryRepository(apiConfig)
     private var tokens = ""
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
@@ -62,7 +60,10 @@ class MainActivity : AppCompatActivity(){
                 viewModel.viewModelScope.launch {
                     try {
                         isLoading(true)
-                        storyRepository.getStories(token= tokens, onSuccess = {list -> showStories(list)}, onError = {})
+                        viewModel.getStory().observe(this@MainActivity){
+                            isLoading(false)
+                            mainAdapter.submitData(lifecycle, it)
+                        }
                         binding.fbAdd.setOnClickListener {
                             val intent = Intent(this@MainActivity, AddActivity::class.java)
                             intent.putExtra("token", tokens)
@@ -81,22 +82,6 @@ class MainActivity : AppCompatActivity(){
             binding.pbMain.visibility = View.VISIBLE
         }else{
             binding.pbMain.visibility = View.INVISIBLE
-        }
-    }
-    private fun showStories(storyList: List<ListStoryItem>) {
-        binding.apply {
-            mainAdapter = MainAdapter()
-            binding.rvStoryItem.adapter = mainAdapter
-            if (applicationContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
-                rvStoryItem.layoutManager = GridLayoutManager(this@MainActivity, 3)
-            }else{
-                rvStoryItem.layoutManager = LinearLayoutManager(this@MainActivity)
-            }
-            isLoading(false)
-            allStoryResponse = ArrayList(storyList)
-            allStoryResponse.addAll(storyList)
-            mainAdapter.submitList(storyList)
-
         }
     }
 
@@ -127,7 +112,6 @@ class MainActivity : AppCompatActivity(){
                 }
                 R.id.mapsButton -> {
                     val intent = Intent(this, MapsActivity::class.java)
-                    intent.putExtra(LOCATION_PERMISSION, allStoryResponse)
                     startActivity(intent)
                     true
                 }

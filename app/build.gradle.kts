@@ -64,4 +64,5 @@ dependencies {
     implementation("androidx.exifinterface:exifinterface:1.3.6")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("androidx.paging:paging-runtime-ktx:3.2.1")
 }
