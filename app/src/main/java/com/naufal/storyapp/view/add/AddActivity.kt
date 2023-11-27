@@ -127,10 +127,11 @@ class AddActivity : AppCompatActivity() {
     }
 
     private fun uploadAction(token: String) {
-        Toast.makeText(this,binding.btnLocation.isChecked.toString(), Toast.LENGTH_LONG).show()
         if (binding.btnLocation.isChecked){
+            Toast.makeText(this,"Upload with location", Toast.LENGTH_LONG).show()
             uploadWithLocation(token)
         }else{
+            Toast.makeText(this,"Upload Without location", Toast.LENGTH_LONG).show()
             uploadWithoutLocation(token)
         }
     }
