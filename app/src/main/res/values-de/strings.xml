@@ -21,4 +21,6 @@
     <string name="msg_pass_email_salah">Konto mit %1$s konnte sich nicht anmelden. Stellen Sie sicher, dass die E-Mail-Adresse oder das Passwort korrekt sind</string>
     <string name="msg_onFailure">Konto mit %1$s konnte sich nicht anmelden. Bitte versuchen Sie es in ein paar Augenblicken noch einmal. %2$s</string>
     <string name="msg_pass_email_kosong">Geben Sie unbedingt zuerst Ihre E-Mail-Adresse und Ihr Passwort ein!</string>
+    <string name="lokasi">Standort</string>
+    <string name="currentImage_null">Wählen Sie zunächst das Bild aus, das Sie hochladen möchten</string>
 </resources>

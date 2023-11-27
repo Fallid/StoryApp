@@ -10,6 +10,8 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -86,6 +88,7 @@ class AddActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val token = intent.getStringExtra("token")
+        var enableButton = false
         binding = ActivityAddBinding.inflate(layoutInflater)
         setContentView(binding.root)
         imageView = binding.ivAddImage
@@ -94,11 +97,29 @@ class AddActivity : AppCompatActivity() {
         if (!requiredPermission()) {
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSION, 200)
         }
+
+        binding.edAddDescription.addTextChangedListener(object : TextWatcher{
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                binding.btnUpload.isEnabled = true
+                enableButton = true
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+
+            }
+
+        })
         binding.btnGallery.setOnClickListener { startGallery() }
         binding.btnCamera.setOnClickListener { startCamera() }
         binding.btnUpload.setOnClickListener {
-            if (token != null) {
+            if (token != null && enableButton && currentImageUri != null) {
                 uploadAction("Bearer $token")
+            }else{
+                Toast.makeText(this, getString(R.string.currentImage_null), Toast.LENGTH_LONG).show()
             }
         }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -106,6 +127,59 @@ class AddActivity : AppCompatActivity() {
     }
 
     private fun uploadAction(token: String) {
+        Toast.makeText(this,binding.btnLocation.isChecked.toString(), Toast.LENGTH_LONG).show()
+        if (binding.btnLocation.isChecked){
+            uploadWithLocation(token)
+        }else{
+            uploadWithoutLocation(token)
+        }
+    }
+    private fun uploadWithoutLocation(token: String){
+        currentImageUri?.let { uri ->
+            val imageFile = uriToFile(uri, this).reduceFileImage()
+            Log.d("Image File", "showImage: ${imageFile.path}")
+            val description = binding.edAddDescription.text.toString()
+            isLoading(true)
+            val requestBody = description.toRequestBody("text/plain".toMediaType())
+            val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
+            val multipartBody = MultipartBody.Part.createFormData(
+                "photo",
+                imageFile.name,
+                requestImageFile
+            )
+            lifecycleScope.launch {
+                try {
+                    val apiService = ApiConfig.getApiAuth()
+                    val successResponse = apiService.newStoryWithoutLocation(token, requestBody, multipartBody)
+                    successResponse.enqueue(object : Callback<AddStoryResponse>{
+                        override fun onResponse(
+                            call: Call<AddStoryResponse>,
+                            response: Response<AddStoryResponse>
+                        ) {
+                            showToast(response.message())
+                            isLoading(false)
+                            val intent = Intent(this@AddActivity, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                            startActivity(intent)
+                        }
+
+                        override fun onFailure(call: Call<AddStoryResponse>, t: Throwable) {
+                            showToast(t.message.toString())
+                            isLoading(false)
+                        }
+                    })
+                    isLoading(false)
+                } catch (e: HttpException) {
+                    val errorBody = e.response()?.errorBody()?.string()
+                    val errorResponse = Gson().fromJson(errorBody, AddStoryResponse::class.java)
+                    errorResponse.message?.let { showToast(it) }
+                    isLoading(false)
+                }
+            }
+        } ?: showToast(getString(R.string.empty_image_warning))
+    }
+
+    private fun uploadWithLocation(token: String){
         currentImageUri?.let { uri ->
             val imageFile = uriToFile(uri, this).reduceFileImage()
             Log.d("Image File", "showImage: ${imageFile.path}")
@@ -158,7 +232,6 @@ class AddActivity : AppCompatActivity() {
             }
         } ?: showToast(getString(R.string.empty_image_warning))
     }
-
     private fun startGallery() {
         launcherGallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
