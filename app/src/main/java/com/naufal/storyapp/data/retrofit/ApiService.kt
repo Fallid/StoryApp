@@ -49,6 +49,14 @@ interface ApiService {
         @Part("lon") lon: Float
     ): Call<AddStoryResponse>
 
+    @Multipart
+    @POST("stories")
+    fun newStoryWithoutLocation(
+        @Header("Authorization") token: String,
+        @Part("description") description: RequestBody,
+        @Part photo: MultipartBody.Part,
+        ): Call<AddStoryResponse>
+
     @GET("stories?location=1")
     suspend fun getLocation(
         @Query("location") location: Int = 1

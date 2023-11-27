@@ -22,4 +22,5 @@
     <string name="msg_onFailure">Akun dengan %1$s gagal untuk login. Silahkan coba beberapa saat lagi.   %2$s</string>
     <string name="msg_pass_email_kosong">Pastikan untuk mengisi email dan password terlebih dahulu!</string>
     <string name="lokasi">Lokasi</string>
+    <string name="currentImage_null">Pilih gambar yang ingin diunggah dulu</string>
 </resources>
